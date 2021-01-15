@@ -33,9 +33,9 @@ async function createACard(cardName, list, appKey, token){
     body: JSON.stringify(body),
     headers: {'Content-Type': 'application/json'}
   });
-  const json = await response.json();
+  const cardData = await response.json();
 
-  console.log(json);
+  console.log('New Card Created!!\n\nHere is the new card\'s id!', cardData.id);
 }
 
 // Initial dummy route for testing
