@@ -1,4 +1,6 @@
 const fetch = require('node-fetch');
+const Instagram = require('instagram-web-api');
+const FileCookieStore = require('tough-cookie-filestore2')
 
 // Load required packages
 var express = require('express');
@@ -25,7 +27,7 @@ var port = process.env.PORT || 3000;
 var router = express.Router();
 
 // create a card function. Use this as a template.
-async function createACard(cardName, list, appKey, token){
+async function createACard(cardName, list, appKey, token) {
   // a string concatenation for the url
   var url = 'https://api.trello.com/1/cards?key=' + appKey + '&token=' + token;
   
@@ -33,6 +35,7 @@ async function createACard(cardName, list, appKey, token){
   const body = {
     name: cardName, 
     idList: list,
+    due: new Date()
   };
 
   const response = await fetch(url, {
@@ -47,9 +50,7 @@ async function createACard(cardName, list, appKey, token){
   console.log('New Card Created!!\n\nHere is the new card\'s id!', cardData.id);
 }
 
-// Initial dummy route for testing
-// http://localhost:3000/api
-router.get('/', function(req, res) {
+function setupTrello() {
   //below is the specific ids needed for the POST request
   var appKey = 'a085de50cd91279bdc43ebd7e9b58498';
   var token = '0de12f760c168443df8e2ed47bae83ac598c3288d91c3738129cf1fbd93ff078';
@@ -57,9 +58,55 @@ router.get('/', function(req, res) {
   var lists = [{"id":"6001a8916b8fd0890c43d51d","name":"API TESTING 1"}, {"id":"6001a897f2e1af7834229aaa","name":"API TESTING 2"}];
 
   //method that creates a card
-  createACard('A New Card!', lists[0].id, appKey, token);
+  createACard('The newest Card', lists[0].id, appKey, token);
+}
+
+function getImages(photosPayload){
+  return photosPayload.user.edge_owner_to_timeline_media.edges;
+}
+async function setupInstagram(){
+  //Login Info
+  const username = 'lhs_extern_acc'
+  const password = 'NodeJS1!'
+
+  const cookieStore = new FileCookieStore('./cookies.json')
+  const client = new Instagram({ username, password, cookieStore })
+ 
+  //Ed Sheeran's instagram
+  const edSheeranUsername = 'teddysphotos';
+  // number of photos
+  const first = 5;
+
+  //fetch images using api
+  const photos = await client.getPhotosByUsername({ username: edSheeranUsername, first: first })
+
+  //convert images to usable array
+  const photoArray = getImages(photos);
   
-  res.json({ message: 'Welcome to the testing script', appKey, token, board_id, lists }); 
+  //printing array
+  console.log(photoArray);
+
+  //TODO: This is a sample route localhost:3000/api that prints a set of 5 images from ed sheeran's instagram
+  // create GET routes for each of the following:
+  // 1. returns timestamps in a json
+  // 2. returns display urls (photos) in a json
+  // 3. returns misc infos like is_video, dimensions, etc
+  // work off the examples of the tutorial to create these routes! 
+  // It could be localhost:3000/api/edsheeran/ or something similar
+  // make sure to run npm install and test that the program is printing stuff out by going to
+  //localhost:3000/api
+  
+}
+
+
+
+
+
+// Initial dummy route for testing
+// http://localhost:3000/api
+router.get('/', function(req, res) {
+  setupInstagram();  
+  res.json({ message: 'Welcome to the testing script' }); 
 });
 
 // Register all our routes with /api
