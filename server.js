@@ -7,12 +7,14 @@ var express = require('express');
 var mongoose = require('mongoose');
 var bodyParser = require('body-parser');
 var Beer = require('./models/beer');
+var cors = require('cors')
 
 // Connect to the beerlocker MongoDB
 mongoose.connect('mongodb://localhost:27017/beerlocker');
 
 // Create our Express application
 var app = express();
+app.use(cors())
 
 // Use the body-parser package in our application
 app.use(bodyParser.json());
@@ -64,6 +66,8 @@ function setupTrello() {
 function getImages(photosPayload){
   return photosPayload.user.edge_owner_to_timeline_media.edges;
 }
+
+// This function returns a list of length 5 of photo urls of Ed Sheeran
 async function setupInstagram(){
   //Login Info
   const username = 'lhs_extern_acc'
@@ -84,8 +88,15 @@ async function setupInstagram(){
   const photoArray = getImages(photos);
   
   //printing array
-  console.log(photoArray);
+  // console.log(photoArray);
+  // console.log(photoArray[3].node.display_url);
+  const urlArray = [];
+  var i;
+  for (i = 0; i < photoArray.length; i++) {
+    urlArray.push(photoArray[i].node.display_url);
+  }
 
+  return urlArray;
   //TODO: This is a sample route localhost:3000/api that prints a set of 5 images from ed sheeran's instagram
   // create GET routes for each of the following:
   // 1. returns timestamps in a json
@@ -99,8 +110,17 @@ async function setupInstagram(){
 }
 
 
+// Create a new ROUTE accessable through /api/instagram
+const instagramRoute = router.route('/instagram/edsheerantopfivephotourls');
 
-
+// Create a new ENDPOINT for GETs
+instagramRoute.get(async function(req, res) {
+  const photoArray = await setupInstagram();  
+  const responseObject = {
+    photos: photoArray
+  };
+  res.json(responseObject);
+});
 
 // Initial dummy route for testing
 // http://localhost:3000/api
